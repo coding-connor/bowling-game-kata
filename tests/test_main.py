@@ -1,4 +1,10 @@
-from bowling_game_kata.main import BowlingGame, Rolls
+from bowling_game_kata.main import (
+    BowlingGame,
+    Rolls,
+    NormalFrameScorer,
+    SpareFrameScorer,
+    StrikeFrameScorer,
+)
 from pytest import raises
 
 
@@ -27,7 +33,11 @@ class TestBowlingGame:
         with raises(ValueError):
             Rolls(rolls=[1 for _ in range(30)])
 
-    # Checking for a valid game is more complicated, and skipped for now
+    def test_invalid_roll_values(self):
+        with raises(ValueError):
+            Rolls(rolls=[11] + [0 for _ in range(19)])
+        with raises(ValueError):
+            Rolls(rolls=[-1] + [0 for _ in range(19)])
 
     def test_single_strike(self):
         rolls = Rolls(rolls=[10] + [1 for _ in range(18)])
@@ -71,3 +81,56 @@ class TestBowlingGame:
         rolls = Rolls(rolls=[10 for _ in range(12)])
         game = BowlingGame(rolls)
         assert game.score() == 300
+
+    def test_example_game(self):
+        # Test the example game from the main block
+        rolls = Rolls(rolls=[10 for _ in range(12)])  # Perfect game
+        game = BowlingGame(rolls)
+        assert game.score() == 300
+
+
+class TestFrameScorers:
+    def test_normal_frame_scorer(self):
+        scorer = NormalFrameScorer()
+        rolls = [3, 4]
+        result = scorer.score(rolls, 0)
+        assert result.score == 7
+        assert result.next_roll_index == 2
+
+    def test_normal_frame_scorer_out_of_bounds(self):
+        scorer = NormalFrameScorer()
+        rolls = [3]
+        import pytest
+
+        with pytest.raises(ValueError, match="Not enough rolls for normal frame"):
+            scorer.score(rolls, 0)
+
+    def test_spare_frame_scorer(self):
+        scorer = SpareFrameScorer()
+        rolls = [5, 5, 7]
+        result = scorer.score(rolls, 0)
+        assert result.score == 17
+        assert result.next_roll_index == 2
+
+    def test_spare_frame_scorer_out_of_bounds(self):
+        scorer = SpareFrameScorer()
+        rolls = [5, 5]
+        import pytest
+
+        with pytest.raises(ValueError, match="Not enough rolls for spare frame"):
+            scorer.score(rolls, 0)
+
+    def test_strike_frame_scorer(self):
+        scorer = StrikeFrameScorer()
+        rolls = [10, 3, 6]
+        result = scorer.score(rolls, 0)
+        assert result.score == 19
+        assert result.next_roll_index == 1
+
+    def test_strike_frame_scorer_out_of_bounds(self):
+        scorer = StrikeFrameScorer()
+        rolls = [10, 3]
+        import pytest
+
+        with pytest.raises(ValueError, match="Not enough rolls for strike frame"):
+            scorer.score(rolls, 0)
