@@ -5,68 +5,66 @@ from pydantic import BaseModel
 class Frame(BaseModel):
     first_roll: int
     second_roll: Optional[int] = None
+    third_roll: Optional[int] = None
 
     def is_strike(self) -> bool:
         return self.first_roll == 10
 
     def is_spare(self) -> bool:
-        if not self.first_roll and self.second_roll:
+        if self.second_roll is None:
             return False
-        return self.first_roll + (self.second_roll if self.second_roll else 0) == 10
+        return self.first_roll + self.second_roll == 10
+
+    def get_score(self, include_third_roll: bool = True) -> int:
+        score = self.first_roll
+        if self.second_roll is not None:
+            score += self.second_roll
+        if self.third_roll is not None and include_third_roll:
+            score += self.third_roll
+        return score
 
 
 class BowlingGame:
     def __init__(self):
-        self.last_roll: int = 0
         self.frames: list[Frame] = []
-        self.spare_bonus: bool = False
-        self.strike_first_bonus: bool = False
-        self.strike_second_bonus: bool = False
 
     def roll(self, pins: int):
-        if self.frames:
-            last_frame = self.frames[-1]
-
-            if last_frame.second_roll or last_frame.first_roll == 10:
-                self.frames.append(Frame(first_roll=pins))
-            else:
-                last_frame.second_roll = pins
-        else:
+        if not self.frames:
             self.frames.append(Frame(first_roll=pins))
+            return
 
-        self.last_roll = pins
+        previous_frame = self.frames[-1]
+
+        # Handle last frame
+        if len(self.frames) == 10:
+            if previous_frame.second_roll is not None:
+                previous_frame.third_roll = pins
+            else:
+                previous_frame.second_roll = pins
+            return
+
+        # Handle normal frames
+        if previous_frame.second_roll is not None or previous_frame.first_roll == 10:
+            self.frames.append(Frame(first_roll=pins))
+        else:
+            previous_frame.second_roll = pins
 
     def score(self) -> int:
         total = 0
         for index, frame in enumerate(self.frames):
-            # add spare bonus when previous roll resulted in spare
-            if self.spare_bonus:
-                total += self.last_roll
-                self.spare_bonus = False
-            if self.strike_first_bonus and not frame.second_roll:
-                total += self.last_roll
-                self.strike_first_bonus = False
-            if self.strike_second_bonus and frame.second_roll:
-                total += self.last_roll
-                self.strike_second_bonus = False
-            # spare
-            if frame.is_spare():
-                self.spare_bonus = True
+            # Add the current frame's score
+            total += frame.get_score()
 
-            # strike
-            if frame.is_strike():
-                self.strike_first_bonus = True
-                self.strike_second_bonus = True
-
-            total = (
-                total
-                + frame.first_roll
-                + (frame.second_roll if frame.second_roll else 0)
-            )
+            # Add bonus points for previous frame's spare or strike
+            if index > 0:
+                previous_frame = self.frames[index - 1]
+                if previous_frame.is_spare():
+                    total += frame.first_roll
+                elif previous_frame.is_strike():
+                    total += frame.get_score(include_third_roll=False)
+                    if index > 1 and self.frames[index - 2].is_strike():
+                        total += frame.first_roll
         return total
-
-        ## Spare
-        ## If: Roll + Roll[-1] == 10
 
 
 if __name__ == "__main__":
