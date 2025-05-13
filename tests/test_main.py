@@ -1,4 +1,12 @@
+import pytest
 from bowling_game_kata.main import BowlingGame
+
+
+def build_game(rolls: list[int]) -> BowlingGame:
+    game = BowlingGame()
+    for pins in rolls:
+        game.roll(pins)
+    return game
 
 
 class TestBowlingGame:
@@ -7,185 +15,134 @@ class TestBowlingGame:
         assert game.score() == 0
 
     def test_scores_single_normal_roll(self):
-        game = BowlingGame()
-        game.roll(4)
+        game = build_game([4])
         assert game.score() == 4
 
     def test_scores_two_normal_rolls(self):
-        game = BowlingGame()
-        game.roll(4)
-        game.roll(4)
+        game = build_game([4, 4])
         assert game.score() == 8
 
     def test_scores_single_spare(self):
-        game = BowlingGame()
-        game.roll(5)
-        game.roll(5)
-        game.roll(4)
+        game = build_game([5, 5, 4])
         assert game.score() == 18
 
     def test_scores_single_strike(self):
-        game = BowlingGame()
-        game.roll(10)
-        game.roll(5)
-        game.roll(4)
+        game = build_game([10, 5, 4])
         assert game.score() == 28
 
     def test_correctly_identify_spares(self):
-        game = BowlingGame()
-        game.roll(3)
-        game.roll(5)
-        game.roll(5)
+        game = build_game([3, 5, 5])
         assert game.score() == 13
 
     def test_correctly_handle_last_frame_spare(self):
-        game = BowlingGame()
-        for _ in range(18):
-            game.roll(1)
-        game.roll(5)
-        game.roll(5)
-        game.roll(5)
+        rolls = [1] * 18 + [5, 5, 5]  # 9 frames of ones, then spare with bonus
+        game = build_game(rolls)
         assert game.score() == 33
 
     def test_correctly_handle_last_frame_strike(self):
-        game = BowlingGame()
-        for _ in range(18):
-            game.roll(1)
-        game.roll(10)
-        game.roll(1)
-        game.roll(1)
+        rolls = [1] * 18 + [10, 1, 1]  # 9 frames of ones, then strike with bonus
+        game = build_game(rolls)
         assert game.score() == 30
 
-    def test_consecutive_strikes(self):
-        game = BowlingGame()
-        game.roll(10)
-        game.roll(10)
-        game.roll(10)
-        assert game.score() == 60
-
     def test_perfect_game(self):
-        game = BowlingGame()
-        for _ in range(12):
-            game.roll(10)
+        rolls = [10] * 12  # 12 strikes
+        game = build_game(rolls)
         assert game.score() == 300
 
     def test_gutter_ball_game(self):
-        game = BowlingGame()
-        for _ in range(20):
-            game.roll(0)
+        rolls = [0] * 20  # 20 zeros
+        game = build_game(rolls)
         assert game.score() == 0
 
-    def test_mixed_game(self):
-        game = BowlingGame()
-        # Frame 1: Strike
-        game.roll(10)
-        # Frame 2: Spare (5,5)
-        game.roll(5)
-        game.roll(5)
-        # Frame 3: Strike
-        game.roll(10)
-        # Frame 4: Normal (3,4)
-        game.roll(3)
-        game.roll(4)
-        # Frame 5: Spare (7,3)
-        game.roll(7)
-        game.roll(3)
-        # Frame 6: Strike
-        game.roll(10)
-        # Frame 7: Normal (2,3)
-        game.roll(2)
-        game.roll(3)
-        # Frame 8: Strike
-        game.roll(10)
-        # Frame 9: Strike
-        game.roll(10)
-        # Frame 10: Spare with bonus (8,2,5)
-        game.roll(8)
-        game.roll(2)
-        game.roll(5)
-
-        assert game.score() == 167
-
-    def test_another_mixed_game(self):
-        game = BowlingGame()
-        # Frame 1: (0,0)
-        game.roll(0)
-        game.roll(0)
-        # Frame 2: (3,6))
-        game.roll(3)
-        game.roll(6)
-        # Frame 3: Spare (5,5)
-        game.roll(5)
-        game.roll(5)
-        # Frame 4: Strike (10)
-        game.roll(10)
-        # Frame 5: Strike (10)
-        game.roll(10)
-        # Frame 6: Strike
-        game.roll(10)
-        # Frame 7: Spare (8,2)
-        game.roll(8)
-        game.roll(2)
-        # Frame 8: (0,9)
-        game.roll(0)
-        game.roll(9)
-        # Frame 9: Spare (1,9)
-        game.roll(1)
-        game.roll(9)
-        # Frame 10: Strike, Spare (10,5,5)
-        game.roll(10)
-        game.roll(5)
-        game.roll(5)
-
-        assert game.score() == 166
+    def test_all_spares_game(self):
+        rolls = [5, 5] * 10 + [5]  # 10 frames of spares (5,5) plus bonus roll
+        game = build_game(rolls)
+        assert game.score() == 150
 
     def test_three_strikes_in_last_frame(self):
-        game = BowlingGame()
-        # First 9 frames of zeros
-        for _ in range(18):
-            game.roll(0)
-        # Last frame: three strikes
-        game.roll(10)
-        game.roll(10)
-        game.roll(10)
-
+        rolls = [0] * 18 + [10, 10, 10]  # 9 frames of zeros, then three strikes
+        game = build_game(rolls)
         assert game.score() == 30
 
     def test_three_consecutive_strikes(self):
-        game = BowlingGame()
-        # First 6 frames of zeros
-        for _ in range(12):
-            game.roll(0)
-        # Three consecutive strikes
-        game.roll(10)
-        game.roll(10)
-        game.roll(10)
-        # Last frame: normal
-        game.roll(5)
-        game.roll(4)
-
+        rolls = [0] * 12 + [
+            10,
+            10,
+            10,
+            5,
+            4,
+        ]  # 6 frames of zeros, three strikes, then 5,4
+        game = build_game(rolls)
         assert game.score() == 83
 
     def test_strike_followed_by_spare_in_last_frame(self):
-        game = BowlingGame()
-        # First 9 frames of zeros
-        for _ in range(18):
-            game.roll(0)
-        # Last frame: strike followed by spare
-        game.roll(10)
-        game.roll(5)
-        game.roll(5)
-
+        rolls = [0] * 18 + [
+            10,
+            5,
+            5,
+        ]  # 9 frames of zeros, then strike followed by spare
+        game = build_game(rolls)
         assert game.score() == 20
 
     def test_spare_followed_by_strike_in_last_frame(self):
-        game = BowlingGame()
-        # First 9 frames of zeros
-        for _ in range(18):
-            game.roll(0)
-        # Last frame: spare followed by strike
-        game.roll(5)
-        game.roll(5)
-        game.roll(10)
-
+        rolls = [0] * 18 + [
+            5,
+            5,
+            10,
+        ]  # 9 frames of zeros, then spare followed by strike
+        game = build_game(rolls)
         assert game.score() == 20
+
+    # Scores validated using https://www.bowlinggenius.com/
+    @pytest.mark.parametrize(
+        "rolls,expected_score,description",
+        [
+            (
+                [10, 5, 5, 10, 3, 4, 7, 3, 10, 2, 3, 10, 10, 8, 2, 5],
+                167,
+                "Mixed game with strikes, spares, and normal frames",
+            ),
+            (
+                [0, 0, 3, 6, 5, 5, 10, 10, 10, 8, 2, 0, 9, 1, 9, 10, 5, 5],
+                166,
+                "Another mixed game with different patterns",
+            ),
+            (
+                [10, 5, 5, 10, 5, 5, 10, 5, 5, 10, 5, 5, 10, 5, 5, 10, 5, 5, 10, 5, 5],
+                195,
+                "Alternating strikes and spares",
+            ),
+            (
+                [3, 0, 4, 6, 10, 6, 0, 1, 5, 9, 1, 4, 6, 0, 0, 10, 3, 3],
+                97,
+                "Another mixed game with strikes, spares, and normal frames",
+            ),
+        ],
+    )
+    def test_partial_games(self, rolls, expected_score, description):
+        game = build_game(rolls)
+        assert game.score() == expected_score
+
+    @pytest.mark.parametrize(
+        "rolls,expected_score,description",
+        [
+            (
+                [5, 4, 2, 4, 6, 4, 7, 2, 7, 3],
+                51,
+                "Mixed partialgame with strikes, spares, and normal frames",
+            ),
+            (
+                [10, 10, 5, 5, 3, 6, 0, 10, 10],
+                97,
+                "Another partial mixed game with different patterns",
+            ),
+            (
+                [10, 5, 5, 10, 5, 5, 10, 5, 5, 10, 5, 5],
+                150,
+                "Alternating strikes and spares for partial game",
+            ),
+        ],
+    )
+    def test_mixed_games(self, rolls, expected_score, description):
+        game = build_game(rolls)
+        assert game.score() == expected_score
