@@ -1,0 +1,19 @@
+---
+description: Interview Structure Overview
+globs:
+alwaysApply: false
+---
+Our technical screening has two parts and lasts about 45 minutes to an hour. The first part is a coding exercise. The second part is a loosely structured Q/A and is mainly designed to help us understand how you think. For the coding exercise, we will pair-program through a classic TDD exercise — scoring a bowling match. If you're not familiar with it, feel free to read up and even practice through it if you'd like. The goal of this exercise is to directly observe three things:
+
+1. Can you actually produce working code and tests?
+
+2. Can you "think out loud" and communicate your problem-solving approach?
+
+3. Can you work on a team and accept feedback?We try to make these screenings as close to a real-life coding environment as possible. You can lean on whatever resources you usually do when you're coding — Google, Stack Overflow, etc.
+
+Here are a couple more notes:
+
+- You can use any programming language you want, and we recommend using what you're most competent with
+- You will be coding/running tests on your own machine with your own environment (feel free to set this up beforehand if you want to save time)
+- You'll be expected to share your entire screen during the coding test
+- While we embrace the use of AI to assist with development on a daily basis, we ask that candidates refrain from using Copilot, ChatGPT, etc. during the test
